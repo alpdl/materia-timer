@@ -8,9 +8,16 @@ describe("formatNumber", () => {
     expect(formatNumber(0)).toBe("0");
   });
 
-  it("дробные < 1", () => {
+  it("дробные >= 0.01 округляются до двух знаков", () => {
     expect(formatNumber(0.5)).toBe("0.5");
-    expect(formatNumber(0.123456789)).toBe("0.123457");
+    expect(formatNumber(0.444444)).toBe("0.44");
+    expect(formatNumber(0.123456789)).toBe("0.12");
+    expect(formatNumber(0.01)).toBe("0.01");
+  });
+
+  it("микрозначения < 0.01 показывают до шести знаков", () => {
+    expect(formatNumber(0.001234)).toBe("0.001234");
+    expect(formatNumber(0.0000001)).toBe("0");
   });
 
   it("отрезает хвостовые нули", () => {
