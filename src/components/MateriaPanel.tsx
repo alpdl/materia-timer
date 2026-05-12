@@ -2,36 +2,62 @@ import { useMemo } from "react";
 import { calculateMateria } from "../lib/materia";
 import { useLocalState } from "../lib/storage";
 import { Field } from "./Field";
+import { ResetButton } from "./ResetButton";
 import { StatCard } from "./StatCard";
 
 const ACCENT = "var(--color-materia)";
+const DEFAULT_ENERGY = "";
+const DEFAULT_TPS = "20";
+
+type Parsed =
+  | { kind: "empty" }
+  | { kind: "error"; message: string }
+  | { kind: "ok"; result: ReturnType<typeof calculateMateria> };
+
+function parse(energy: string, tps: string): Parsed {
+  const energyTrim = energy.trim();
+  const tpsTrim = tps.trim();
+  if (energyTrim === "") return { kind: "empty" };
+
+  const e = parseFloat(energyTrim.replace(",", "."));
+  if (!Number.isFinite(e) || e <= 0) {
+    return { kind: "error", message: "Энергия должна быть положительным числом." };
+  }
+  const t = tpsTrim === "" ? 20 : parseFloat(tpsTrim.replace(",", "."));
+  if (!Number.isFinite(t) || t <= 0) {
+    return { kind: "error", message: "TPS должен быть больше нуля." };
+  }
+  return { kind: "ok", result: calculateMateria(e, t) };
+}
 
 export function MateriaPanel() {
-  const [energy, setEnergy] = useLocalState<string>("materia.energy", "");
-  const [tps, setTps] = useLocalState<string>("materia.tps", "20");
+  const [energy, setEnergy] = useLocalState<string>("materia.energy", DEFAULT_ENERGY);
+  const [tps, setTps] = useLocalState<string>("materia.tps", DEFAULT_TPS);
 
-  const parsed = useMemo(() => {
-    const e = parseFloat(energy.replace(",", "."));
-    const t = parseFloat(tps.replace(",", "."));
-    if (!Number.isFinite(e) || e <= 0) return { error: "Введи энергию в миллионах." };
-    if (!Number.isFinite(t) || t <= 0) return { error: "TPS должен быть больше нуля." };
-    return { result: calculateMateria(e, t) };
-  }, [energy, tps]);
+  const parsed = useMemo(() => parse(energy, tps), [energy, tps]);
+  const canReset = energy !== DEFAULT_ENERGY || tps !== DEFAULT_TPS;
 
   return (
-    <div className="glass p-6 sm:p-8 fade-in">
-      <header className="mb-6 flex items-start justify-between gap-4">
+    <section className="fade-in">
+      <header className="mb-5 flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight" style={{ color: ACCENT }}>
+          <h2 className="text-xl font-semibold tracking-tight" style={{ color: ACCENT }}>
             Материя
           </h2>
           <p className="mt-1 text-sm" style={{ color: "var(--color-text-muted)" }}>
-            Сколько материи генерируется при заданной энергии и TPS.
+            Сколько материи получится из заданной энергии при текущем TPS.
           </p>
         </div>
+        <ResetButton
+          disabled={!canReset}
+          onClick={() => {
+            setEnergy(DEFAULT_ENERGY);
+            setTps(DEFAULT_TPS);
+          }}
+        />
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Field
           label="Энергия"
           value={energy}
@@ -55,16 +81,31 @@ export function MateriaPanel() {
         />
       </div>
 
-      <div className="mt-6 min-h-[6rem]">
-        {"error" in parsed ? (
+      <div className="mt-6">
+        {parsed.kind === "empty" && (
           <div
-            className="glass-inset px-4 py-3 text-sm"
-            style={{ borderColor: "rgba(255, 80, 100, 0.4)", color: "#ff8aa0" }}
+            className="surface px-4 py-6 text-center text-sm"
+            style={{ color: "var(--color-text-muted)" }}
           >
-            {parsed.error}
+            Введи энергию, чтобы увидеть производительность.
           </div>
-        ) : (
-          <div className="fade-in grid grid-cols-2 lg:grid-cols-4 gap-3">
+        )}
+
+        {parsed.kind === "error" && (
+          <div
+            className="rounded-lg border px-4 py-3 text-sm"
+            style={{
+              borderColor: "var(--color-danger)",
+              background: "var(--color-danger-dim)",
+              color: "var(--color-danger)",
+            }}
+          >
+            {parsed.message}
+          </div>
+        )}
+
+        {parsed.kind === "ok" && (
+          <div className="fade-in grid grid-cols-2 gap-3 lg:grid-cols-4">
             <StatCard label="В тик" value={parsed.result.perTick} unit="материи" accent={ACCENT} />
             <StatCard
               label="В секунду"
@@ -82,6 +123,6 @@ export function MateriaPanel() {
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }

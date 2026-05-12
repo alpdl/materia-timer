@@ -29,13 +29,13 @@ export function Field({
   return (
     <label htmlFor={id} className="flex flex-col gap-2">
       <span
-        className="text-[11px] font-medium uppercase tracking-[0.14em]"
+        className="text-[11px] font-medium tracking-[0.12em] uppercase"
         style={{ color: "var(--color-text-muted)" }}
       >
         {label}
       </span>
       <div
-        className="glass-inset flex items-center gap-2 px-4 h-12 focus-within:border-[color:var(--accent)]"
+        className="surface flex h-11 items-center gap-2 px-3 transition-colors focus-within:border-[color:var(--accent)]"
         style={{ ["--accent" as never]: accent }}
       >
         <input
@@ -49,7 +49,7 @@ export function Field({
           placeholder={placeholder}
           autoFocus={autoFocus}
           onChange={(e) => onChange(e.target.value)}
-          className="tabular w-full bg-transparent text-lg outline-none placeholder:text-white/20"
+          className="tabular w-full bg-transparent text-base outline-none placeholder:text-[color:var(--color-text-muted)]"
         />
         {suffix && (
           <span className="text-xs whitespace-nowrap" style={{ color: "var(--color-text-muted)" }}>

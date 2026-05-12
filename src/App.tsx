@@ -8,8 +8,7 @@ export default function App() {
   const [tab, setTab] = useLocalState<TabKey>("ui.tab", "materia");
 
   useEffect(() => {
-    const url = new URL(window.location.href);
-    const hash = url.hash.replace(/^#/, "");
+    const hash = window.location.hash.replace(/^#/, "");
     if (hash === "materia" || hash === "neutronium") setTab(hash);
   }, [setTab]);
 
@@ -20,35 +19,28 @@ export default function App() {
   }, [tab]);
 
   return (
-    <>
-      <div className="aura" data-theme={tab} />
-      <div className="grain" />
+    <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
+      <header className="mb-8">
+        <div
+          className="text-[11px] tracking-[0.2em] uppercase"
+          style={{ color: "var(--color-text-muted)" }}
+        >
+          AFK Tools · Minecraft
+        </div>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
+          Счётчик материи и нейтрония
+        </h1>
+      </header>
 
-      <main className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 py-10 sm:py-16">
-        <header className="mb-8 sm:mb-12 flex flex-col items-start gap-4">
-          <div>
-            <div
-              className="text-[11px] uppercase tracking-[0.24em]"
-              style={{ color: "var(--color-text-muted)" }}
-            >
-              AFK Tools · Minecraft
-            </div>
-            <h1 className="mt-2 text-3xl sm:text-4xl font-semibold tracking-tight">
-              Счётчик <span style={{ color: "var(--color-materia)" }}>материи</span>{" "}
-              <span style={{ color: "var(--color-text-muted)" }}>и</span>{" "}
-              <span style={{ color: "var(--color-neutronium)" }}>нейтрония</span>
-            </h1>
-          </div>
+      <div className="mb-8">
+        <Tabs value={tab} onChange={setTab} />
+      </div>
 
-          <Tabs value={tab} onChange={setTab} />
-        </header>
+      {tab === "materia" ? <MateriaPanel /> : <NeutroniumPanel />}
 
-        {tab === "materia" ? <MateriaPanel /> : <NeutroniumPanel />}
-
-        <footer className="mt-12 text-xs text-center" style={{ color: "var(--color-text-muted)" }}>
-          Параметры сохраняются локально в браузере · ссылка на вкладку через хеш в URL
-        </footer>
-      </main>
-    </>
+      <footer className="mt-12 text-center text-xs" style={{ color: "var(--color-text-muted)" }}>
+        Параметры сохраняются локально в браузере
+      </footer>
+    </main>
   );
 }
